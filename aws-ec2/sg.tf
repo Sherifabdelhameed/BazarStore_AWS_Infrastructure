@@ -2,6 +2,7 @@ resource "aws_security_group" "allow_tls" {
   name        = "allow SSH, HTTP, and HTTPS"
   description = "Allow TLS inbound SSH, HTTP, and HTTPS and all outbound traffic"
   vpc_id      = var.vpc_id
+  
 
   tags = {
     Name = "allow_tls"
@@ -10,7 +11,7 @@ resource "aws_security_group" "allow_tls" {
 
 resource "aws_vpc_security_group_ingress_rule" "allow_ssh" {
   security_group_id = aws_security_group.allow_tls.id
-  cidr_ipv4         = var.vpc_cidr
+  cidr_ipv4         = "0.0.0.0/0"
   from_port         = 22
   ip_protocol       = "tcp"
   to_port           = 22
