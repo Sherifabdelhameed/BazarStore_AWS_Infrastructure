@@ -2,7 +2,7 @@ resource "aws_eks_cluster" "example" {
   name = "example"
 
   access_config {
-    authentication_mode = "API"
+    authentication_mode = "API_AND_CONFIG_MAP"  # More compatible with kubectl
   }
 
   role_arn = aws_iam_role.cluster.arn
@@ -10,17 +10,24 @@ resource "aws_eks_cluster" "example" {
 
   vpc_config {
     subnet_ids = [
-      aws_subnet.var.az1.id,
-      aws_subnet.var.az2.id,
+      var.az1,
+      var.az2
     ]
+    endpoint_private_access = true
+    endpoint_public_access  = true
+    security_group_ids      = [aws_security_group.eks_cluster.id]
   }
 
-  # Ensure that IAM Role permissions are created before and deleted
-  # after EKS Cluster handling. Otherwise, EKS will not be able to
-  # properly delete EKS managed EC2 infrastructure such as Security Groups.
+  # Optional: Enable logging
+  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
   depends_on = [
     aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy,
   ]
+
+  tags = {
+    Name = "Production-EKS-Cluster"
+  }
 }
 
 resource "aws_iam_role" "cluster" {
