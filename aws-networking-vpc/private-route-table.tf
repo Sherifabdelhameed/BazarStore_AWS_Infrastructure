@@ -1,3 +1,4 @@
+#creation of the private route tables
 resource "aws_route_table" "private-route-table" {
   vpc_id = aws_vpc.vpc.id
 
@@ -11,6 +12,7 @@ resource "aws_route_table" "private-route-table" {
   }
 }
 
+#association al route tables bel subnets al private
 resource "aws_route_table_association" "subnet1-priv" {
   subnet_id      = aws_subnet.private-subnet1.id
   route_table_id = aws_route_table.private-route-table.id

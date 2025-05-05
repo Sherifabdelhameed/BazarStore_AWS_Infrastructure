@@ -1,3 +1,4 @@
+#creation of the public route tables 
 resource "aws_route_table" "public-route-table" {
   vpc_id = aws_vpc.vpc.id
 
@@ -11,6 +12,7 @@ resource "aws_route_table" "public-route-table" {
   }
 }
 
+#association al route tables bel subnets al public
 resource "aws_route_table_association" "subnet1-pub" {
   subnet_id      = aws_subnet.public-subnet1.id
   route_table_id = aws_route_table.public-route-table.id
