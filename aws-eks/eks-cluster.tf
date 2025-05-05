@@ -1,5 +1,5 @@
 resource "aws_eks_cluster" "example" {
-  name = "example"
+  name = "My-eks-cluster"
 
   access_config {
     authentication_mode = "API_AND_CONFIG_MAP"  # More compatible with kubectl
@@ -26,12 +26,12 @@ resource "aws_eks_cluster" "example" {
   ]
 
   tags = {
-    Name = "Production-EKS-Cluster"
+    Name = "DEPI-EKS-CLUSTER"
   }
 }
 
 resource "aws_iam_role" "cluster" {
-  name = "eks-cluster-example"
+  name = "eks-cluster-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

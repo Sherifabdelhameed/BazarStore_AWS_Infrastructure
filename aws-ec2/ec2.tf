@@ -7,16 +7,15 @@ resource "aws_instance" "ec2_jenkins_server" {
     device_index         = 0
   }
 
-  vpc_security_group_ids = [aws_security_group.security_group.id]
-
   tags = {
     Name = "My-EC2-Jenkins-server"
   }
 }
 
 resource "aws_network_interface" "EC2_network_interface" {
-  subnet_id   = var.subnet_id
-  private_ips = ["10.0.2.100"]
+  subnet_id       = var.subnet_id
+  private_ips     = ["10.0.2.100"]
+  security_groups = [aws_security_group.security_group.id]
 
   tags = {
     Name = "primary_network_interface"

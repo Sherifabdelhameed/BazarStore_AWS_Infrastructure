@@ -15,8 +15,9 @@ module "aws-ec2" {
 
 module "aws-eks" {
   source = "./aws-eks"
-  az1 = module.networking.private_subnet1_id
-  az2 = module.networking.private_subnet2_id
+  az1    = module.networking.private_subnet1_id
+  az2    = module.networking.private_subnet2_id
+  vpc    = module.networking.vpc_id
 }
 variable "region" {
   type = string

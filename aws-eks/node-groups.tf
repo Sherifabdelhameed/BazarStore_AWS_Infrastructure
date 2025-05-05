@@ -1,6 +1,6 @@
 resource "aws_eks_node_group" "example" {
   cluster_name    = aws_eks_cluster.example.name
-  node_group_name = "example-nodes"
+  node_group_name = "My-eks-nodes"
   node_role_arn   = aws_iam_role.node.arn
   subnet_ids      = [var.az1, var.az2]
   
