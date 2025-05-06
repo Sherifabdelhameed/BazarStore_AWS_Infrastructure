@@ -23,6 +23,7 @@ module "aws-eks" {
 module "aws-alb" {
   source = "./aws-alb"
   vpc_id = module.networking.vpc_id
+  subnets_private = [ module.networking.public_subnet1_id, module.networking.public_subnet2_id ]
 }
 
 variable "region" {

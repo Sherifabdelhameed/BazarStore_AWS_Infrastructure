@@ -2,16 +2,10 @@ resource "aws_lb" "my-app-lb" {
   name               = "My-App-LB"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.lb_sg.id]
-  subnets            = [for subnet in aws_subnet.public : subnet.id]
+  security_groups    = [aws_security_group.allow_HTTPS_and_HTTPS_public_access.id]
+  subnets            = var.subnets_private
 
   enable_deletion_protection = true
-
-  access_logs {
-    bucket  = aws_s3_bucket.lb_logs.id
-    prefix  = "test-lb"
-    enabled = true
-  }
 
   tags = {
     Name = "My-ALB"
