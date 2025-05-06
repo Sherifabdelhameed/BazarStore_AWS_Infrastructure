@@ -1,4 +1,4 @@
-Collecting workspace information# AWS Infrastructure Architecture Project Overview
+AWS Infrastructure Architecture Project Overview
 
 This Terraform project implements a comprehensive AWS infrastructure featuring a multi-tier architecture with various AWS services working together. The design follows best practices for security, scalability, and availability.
 
