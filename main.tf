@@ -20,6 +20,11 @@ module "aws-eks" {
   vpc_id  = module.networking.vpc_id  
 }
 
+module "aws-alb" {
+  source = "./aws-alb"
+  vpc_id = module.networking.vpc_id
+}
+
 variable "region" {
   type = string
 }
