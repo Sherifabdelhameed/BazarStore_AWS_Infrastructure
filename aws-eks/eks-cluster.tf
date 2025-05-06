@@ -1,4 +1,4 @@
-resource "aws_eks_cluster" "example" {
+resource "aws_eks_cluster" "eks_cluster" {
   name = "My-eks-cluster"
 
   access_config {

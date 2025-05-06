@@ -1,5 +1,5 @@
 resource "aws_eks_node_group" "example" {
-  cluster_name    = aws_eks_cluster.example.name
+  cluster_name    = aws_eks_cluster.eks_cluster.name  # Correct: match the resource in eks-cluster.tf
   node_group_name = "My-eks-nodes"
   node_role_arn   = aws_iam_role.node.arn
   subnet_ids      = [var.az1, var.az2]
@@ -26,7 +26,7 @@ resource "aws_eks_node_group" "example" {
 resource "aws_security_group" "eks_nodes" {
   name        = "eks-node-sg"
   description = "Security group for EKS worker nodes"
-  vpc_id      = var.vpc
+  vpc_id      = var.vpc_id
 
   egress {
     from_port   = 0

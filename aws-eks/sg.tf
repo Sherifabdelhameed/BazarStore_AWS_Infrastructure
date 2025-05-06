@@ -1,7 +1,7 @@
 resource "aws_security_group" "eks_cluster" {
   name        = "eks-cluster-sg"
   description = "Security group for EKS cluster"
-  vpc_id      = var.vpc  # Need to add vpc_id to variables
+  vpc_id      = var.vpc_id  # Need to add vpc_id to variables
 
   # Allow all outbound traffic
   egress {

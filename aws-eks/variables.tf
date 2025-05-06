@@ -6,6 +6,6 @@ variable "az2" {
     type = string
 }
 
-variable "vpc" {
+variable "vpc_id" {
     type = string
 }
