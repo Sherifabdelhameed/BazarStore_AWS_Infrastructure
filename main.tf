@@ -14,16 +14,16 @@ module "aws-ec2" {
 }
 
 module "aws-eks" {
-  source  = "./aws-eks"
-  az1     = module.networking.private_subnet1_id
-  az2     = module.networking.private_subnet2_id
-  vpc_id  = module.networking.vpc_id  
+  source = "./aws-eks"
+  az1    = module.networking.private_subnet1_id
+  az2    = module.networking.private_subnet2_id
+  vpc_id = module.networking.vpc_id
 }
 
 module "aws-alb" {
-  source = "./aws-alb"
-  vpc_id = module.networking.vpc_id
-  subnets_private = [ module.networking.public_subnet1_id, module.networking.public_subnet2_id ]
+  source          = "./aws-alb"
+  vpc_id          = module.networking.vpc_id
+  subnets_private = [module.networking.public_subnet1_id, module.networking.public_subnet2_id]
 }
 
 variable "region" {
