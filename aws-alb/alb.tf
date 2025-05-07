@@ -7,6 +7,11 @@ resource "aws_lb" "my-app-lb" {
 
   enable_deletion_protection = false
 
+  # Add this lifecycle block to ensure proper cleanup
+  lifecycle {
+    create_before_destroy = true
+  }
+
   tags = {
     Name = "My-ALB"
   }

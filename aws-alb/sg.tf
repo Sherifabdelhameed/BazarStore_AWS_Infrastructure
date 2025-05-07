@@ -1,7 +1,7 @@
 resource "aws_security_group" "ALB_SG" {
-  name        = "ALB-SG"
-  description = "Allow TLS inbound traffic and all outbound traffic"
-  vpc_id      = var.vpc_id
+  name_prefix   = "alb-sg-"  # Using name_prefix instead of name
+  description   = "Allow HTTP traffic and all outbound traffic"
+  vpc_id        = var.vpc_id
 
   tags = {
     Name = "Depi"
