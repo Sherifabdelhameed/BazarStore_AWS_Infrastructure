@@ -45,7 +45,7 @@ resource "aws_security_group_rule" "allow_alb_traffic_to_nodes" {
   from_port                = 30000
   protocol                 = "tcp"
   security_group_id        = aws_security_group.eks_nodes.id
-  source_security_group_id = module.aws-alb.alb_security_group_id
+  source_security_group_id = var.alb_security_group_id
   to_port                  = 30000
   type                     = "ingress"
 }

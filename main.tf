@@ -19,6 +19,8 @@ module "aws-eks" {
   az2    = module.networking.private_subnet2_id
   vpc_id = module.networking.vpc_id
   depends_on = [module.aws-alb]
+  alb_security_group_id = module.aws-alb.alb_security_group_id
+
 }
 
 module "aws-alb" {
