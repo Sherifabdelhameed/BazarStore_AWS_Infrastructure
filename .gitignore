@@ -37,4 +37,4 @@ terraform.rc
 *.zip
 *.tar.gz
 
-.commands_to_run
+.commands_to_run.txt
