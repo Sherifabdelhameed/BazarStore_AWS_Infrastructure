@@ -1,5 +1,3 @@
-Collecting workspace information# AWS Infrastructure - Enterprise-Grade Multi-Tier Architecture
-
 This Terraform project implements a robust AWS infrastructure featuring a multi-tier architecture with various AWS services working together. The design follows best practices for security, scalability, and high availability.
 
 ## Architecture Components
