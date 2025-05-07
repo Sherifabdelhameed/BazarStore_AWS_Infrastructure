@@ -18,3 +18,8 @@ output "target_group_arn" {
   value       = aws_lb_target_group.eks_target_group.arn
 }
 
+output "alb_security_group_id" {
+  description = "The ID of the ALB security group"
+  value       = aws_security_group.ALB_SG.id
+}
+

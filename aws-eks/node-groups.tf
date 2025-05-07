@@ -39,3 +39,23 @@ resource "aws_security_group" "eks_nodes" {
     Name = "eks-node-security-group"
   }
 }
+
+resource "aws_security_group_rule" "allow_alb_traffic_to_nodes" {
+  description              = "Allow ALB traffic to node port"
+  from_port                = 30000
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_nodes.id
+  source_security_group_id = module.aws-alb.alb_security_group_id
+  to_port                  = 30000
+  type                     = "ingress"
+}
+
+resource "aws_security_group_rule" "allow_health_check" {
+  description              = "Allow health check from ALB"
+  from_port                = 30000
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_nodes.id
+  cidr_blocks              = ["0.0.0.0/0"]  # Alternatively use ALB subnets CIDR blocks
+  to_port                  = 30000
+  type                     = "ingress"
+}

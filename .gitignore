@@ -36,3 +36,5 @@ terraform.rc
 # Exclude any generated files
 *.zip
 *.tar.gz
+
+.commands_to_run
