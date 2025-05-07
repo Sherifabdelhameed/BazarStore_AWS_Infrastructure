@@ -1,6 +1,7 @@
 resource "aws_instance" "ec2_jenkins_server" {
   ami           = var.ec2_ami
   instance_type = var.ec2_type
+  
 
   network_interface {
     network_interface_id = aws_network_interface.EC2_network_interface.id

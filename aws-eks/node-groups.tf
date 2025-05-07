@@ -4,6 +4,12 @@ resource "aws_eks_node_group" "example" {
   node_role_arn   = aws_iam_role.node.arn
   subnet_ids      = [var.az1, var.az2]
   
+  
+  instance_types  = ["t3.medium"]  # t3.micro is often too small for EKS
+  
+  
+  disk_size       = 20
+  
   scaling_config {
     desired_size = 2
     max_size     = 3
