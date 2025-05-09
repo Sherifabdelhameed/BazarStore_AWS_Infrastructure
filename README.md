@@ -37,8 +37,9 @@ This Terraform project implements a robust AWS infrastructure featuring a multi-
 - Custom health check configuration for high availability
 - Automatic registration of EKS nodes using Terraform data sources
 
-## Infrastructure Deployment
+## Infrastructure Automation
 
+### 1. Terraform Configuration
 The project uses Terraform's S3 backend to store state remotely:
 ```
 terraform {
@@ -49,6 +50,29 @@ terraform {
   }
 }
 ```
+
+### 2. Ansible Automation
+The project includes Ansible automation for infrastructure provisioning and configuration:
+
+#### Directory Structure
+```
+ansible/
+├── ansible.cfg           # Ansible configuration
+├── docker-compose.yml    # Local development environment
+├── inventory/           # Host inventory definitions
+├── group_vars/         # Group-specific variables
+├── playbooks/          # Ansible playbooks
+│   └── site.yml       # Main playbook
+└── roles/             # Role definitions
+    ├── jenkins/       # Jenkins server role
+    └── eks_node/      # EKS node role
+```
+
+#### Key Components
+- **Local Development**: Docker-based test environment for development
+- **Role-Based Design**: Modular roles for Jenkins and EKS nodes
+- **Configuration Management**: Automated setup of services and dependencies
+- **Security**: SSH key-based authentication and secure configurations
 
 ## Data Flow
 
