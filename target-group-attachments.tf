@@ -4,12 +4,12 @@ data "aws_instances" "eks_nodes" {
     name   = "tag:kubernetes.io/cluster/${module.aws-eks.cluster_name}"
     values = ["owned"]
   }
-  
+
   filter {
     name   = "instance-state-name"
     values = ["running"]
   }
-  
+
   depends_on = [module.aws-eks]
 }
 
