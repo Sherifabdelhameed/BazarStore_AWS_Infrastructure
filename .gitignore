@@ -1,6 +1,7 @@
 # Local .terraform directories
 **/.terraform/*
 
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
@@ -38,3 +39,6 @@ terraform.rc
 *.tar.gz
 
 .commands_to_run.txt
+
+.$Project_Diagram.drawio.bkp
+Project_Diagram.drawio

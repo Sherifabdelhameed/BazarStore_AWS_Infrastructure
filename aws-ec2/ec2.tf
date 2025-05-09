@@ -1,7 +1,7 @@
 resource "aws_instance" "ec2_jenkins_server" {
   ami           = var.ec2_ami
   instance_type = var.ec2_type
-  
+  key_name      = aws_key_pair.ec2_key.key_name
 
   network_interface {
     network_interface_id = aws_network_interface.EC2_network_interface.id
@@ -21,10 +21,4 @@ resource "aws_network_interface" "EC2_network_interface" {
   tags = {
     Name = "primary_network_interface"
   }
-}
-
-resource "aws_key_pair" "ec2-key" {
-  key_name   = "deployer-key"
-  public_key = file("/home/sherifabdelhameed/.ssh/ec2-keypair.pub")
-
 }
