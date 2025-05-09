@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  jenkins:
+    image: ubuntu:22.04
+    container_name: jenkins_server
+    hostname: jenkins_server
+    privileged: true
+    command: >
+      /bin/bash -c "
+      echo '#!/bin/sh\nexit 0' > /usr/sbin/policy-rc.d &&
+      chmod +x /usr/sbin/policy-rc.d &&
+      apt-get update &&
+      apt-get install -y openssh-server sudo netcat &&
+      mkdir -p /run/sshd &&
+      mkdir -p /root/.ssh &&
+      chmod 700 /root/.ssh &&
+      echo 'root:root' | chpasswd &&
+      sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
+      sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config &&
+      sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config &&
+      sed -i 's/#UsePAM yes/UsePAM no/' /etc/ssh/sshd_config &&
+      sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd &&
+      /usr/sbin/sshd -D"
+    ports:
+      - "8080:8080"  # Jenkins port
+      - "2222:22"    # SSH port
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+    volumes:
+      - ./test/ssh_keys:/root/.ssh:ro
+    networks:
+      - ansible_net
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "22"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  eks_node1:
+    image: ubuntu:22.04
+    container_name: eks_node1
+    hostname: eks_node1
+    privileged: true
+    command: >
+      /bin/bash -c "
+      echo '#!/bin/sh\nexit 0' > /usr/sbin/policy-rc.d &&
+      chmod +x /usr/sbin/policy-rc.d &&
+      apt-get update &&
+      apt-get install -y openssh-server sudo netcat &&
+      mkdir -p /run/sshd &&
+      mkdir -p /root/.ssh &&
+      chmod 700 /root/.ssh &&
+      echo 'root:root' | chpasswd &&
+      sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
+      sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config &&
+      sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config &&
+      sed -i 's/#UsePAM yes/UsePAM no/' /etc/ssh/sshd_config &&
+      sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd &&
+      /usr/sbin/sshd -D"
+    ports:
+      - "2223:22"    # SSH port
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+    volumes:
+      - ./test/ssh_keys:/root/.ssh:ro
+    networks:
+      - ansible_net
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "22"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  eks_node2:
+    image: ubuntu:22.04
+    container_name: eks_node2
+    hostname: eks_node2
+    privileged: true
+    command: >
+      /bin/bash -c "
+      echo '#!/bin/sh\nexit 0' > /usr/sbin/policy-rc.d &&
+      chmod +x /usr/sbin/policy-rc.d &&
+      apt-get update &&
+      apt-get install -y openssh-server sudo netcat &&
+      mkdir -p /run/sshd &&
+      mkdir -p /root/.ssh &&
+      chmod 700 /root/.ssh &&
+      echo 'root:root' | chpasswd &&
+      sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
+      sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config &&
+      sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config &&
+      sed -i 's/#UsePAM yes/UsePAM no/' /etc/ssh/sshd_config &&
+      sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd &&
+      /usr/sbin/sshd -D"
+    ports:
+      - "2224:22"    # SSH port
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+    volumes:
+      - ./test/ssh_keys:/root/.ssh:ro
+    networks:
+      - ansible_net
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "22"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  ansible_net:
+    driver: bridge 
