@@ -1,0 +1,25 @@
+all:
+  children:
+    jenkins:
+      hosts:
+        jenkins_server:
+          ansible_host: localhost
+          ansible_port: 2222
+          ansible_user: root
+          ansible_ssh_private_key_file: test/ssh_keys/id_rsa
+          ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    
+    eks_nodes:
+      hosts:
+        eks_node_1:
+          ansible_host: localhost
+          ansible_port: 2223
+          ansible_user: root
+          ansible_ssh_private_key_file: test/ssh_keys/id_rsa
+          ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+        eks_node_2:
+          ansible_host: localhost
+          ansible_port: 2224
+          ansible_user: root
+          ansible_ssh_private_key_file: test/ssh_keys/id_rsa
+          ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'

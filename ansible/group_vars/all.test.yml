@@ -1,0 +1,30 @@
+---
+# Test environment variables
+jenkins_public_ip: "localhost"
+eks_node_1_ip: "localhost"
+eks_node_2_ip: "localhost"
+jenkins_ssh_key: "test/ssh_keys/id_rsa"
+eks_ssh_key: "test/ssh_keys/id_rsa"
+jenkins_admin_password: "test123"
+
+# Jenkins configuration
+jenkins_version: "2.426.1.3"
+jenkins_port: 8080
+jenkins_admin_user: admin
+
+# EKS node configuration
+k8s_version: "1.28"
+container_runtime: containerd
+docker_version: "24.0.5"
+
+# Common packages
+common_packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - software-properties-common
+  - gnupg
+  - lsb-release
+
+# AWS Configuration
+aws_region: "eu-north-1"
