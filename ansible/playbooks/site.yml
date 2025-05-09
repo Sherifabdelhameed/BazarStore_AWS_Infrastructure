@@ -1,0 +1,12 @@
+---
+- name: Configure Jenkins Server
+  hosts: jenkins
+  become: yes
+  roles:
+    - jenkins
+
+- name: Configure EKS Nodes
+  hosts: eks_nodes
+  become: yes
+  roles:
+    - eks_node 
