@@ -59,13 +59,13 @@ The project includes Ansible automation for infrastructure provisioning and conf
 ansible/
 ├── ansible.cfg           # Ansible configuration
 ├── docker-compose.yml    # Local development environment
-├── inventory/           # Host inventory definitions
-├── group_vars/         # Group-specific variables
-├── playbooks/          # Ansible playbooks
-│   └── site.yml       # Main playbook
-└── roles/             # Role definitions
-    ├── jenkins/       # Jenkins server role
-    └── eks_node/      # EKS node role
+├── inventory/            # Host inventory definitions
+├── group_vars/           # Group-specific variables
+├── playbooks/            # Ansible playbooks
+│   └── site.yml          # Main playbook
+└── roles/                # Role definitions
+    ├── jenkins/          # Jenkins server role
+    └── eks_node/         # EKS node role
 ```
 
 #### Key Components
