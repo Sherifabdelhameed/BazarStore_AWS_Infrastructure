@@ -8,12 +8,12 @@ resource "aws_lb_target_group" "eks_target_group" {
   health_check {
     enabled             = true
     interval            = 30
-    path                = "/healthz"
+    path                = "/"
     port                = "traffic-port"
     healthy_threshold   = 3
     unhealthy_threshold = 3
     timeout             = 5
-    matcher             = "200"
+    matcher             = "200-399"
   }
 
   tags = {
