@@ -2,6 +2,7 @@ resource "aws_instance" "ec2_jenkins_server" {
   ami           = var.ec2_ami
   instance_type = var.ec2_type
   key_name      = aws_key_pair.ec2_key.key_name
+  iam_instance_profile = aws_iam_instance_profile.jenkins_instance_profile.name
 
   network_interface {
     network_interface_id = aws_network_interface.EC2_network_interface.id

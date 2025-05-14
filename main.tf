@@ -6,7 +6,7 @@ module "networking" {
 
 module "aws-ec2" {
   source    = "./aws-ec2"
-  ec2_ami   = "ami-04542995864e26699"
+  ec2_ami   = "ami-0dd574ef87b79ac6c"
   ec2_type  = "t3.micro"
   subnet_id = module.networking.public_subnet2_id
   vpc_id    = module.networking.vpc_id
@@ -19,12 +19,13 @@ module "aws-eks" {
   az2                   = module.networking.private_subnet2_id
   vpc_id                = module.networking.vpc_id
   alb_security_group_id = module.aws-alb.alb_security_group_id
+  jenkins_role_arn      = "arn:aws:iam::537124967157:role/jenkins-deployment-role"
 }
 
 module "aws-alb" {
   source          = "./aws-alb"
   vpc_id          = module.networking.vpc_id
-  subnets_private = [module.networking.public_subnet1_id, module.networking.public_subnet2_id]
+  subnets_public = [module.networking.public_subnet1_id, module.networking.public_subnet2_id]
 }
 
 variable "region" {

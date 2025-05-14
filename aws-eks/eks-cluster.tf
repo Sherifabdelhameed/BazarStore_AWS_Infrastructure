@@ -54,3 +54,55 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
   role       = aws_iam_role.cluster.name
 }
 
+# Allow IAM user to access the cluster
+resource "aws_eks_access_entry" "sherif_admin_access" {
+  cluster_name      = aws_eks_cluster.eks_cluster.name
+  principal_arn     = "arn:aws:iam::537124967157:user/SherifAbdelhameed"
+  type              = "STANDARD"
+}
+
+# Associate the IAM user with the EKS Admin Policy for full admin access
+resource "aws_eks_access_policy_association" "sherif_admin_policy" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
+  principal_arn = "arn:aws:iam::537124967157:user/SherifAbdelhameed"
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [aws_eks_access_entry.sherif_admin_access]
+}
+
+# Admin View Policy
+resource "aws_eks_access_policy_association" "sherif_admin_view_policy" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminViewPolicy"
+  principal_arn = "arn:aws:iam::537124967157:user/SherifAbdelhameed"
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [aws_eks_access_entry.sherif_admin_access]
+}
+
+# Allow Jenkins Role to access the EKS cluster
+resource "aws_eks_access_entry" "jenkins_access" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  principal_arn = var.jenkins_role_arn
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "jenkins_admin_policy" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = var.jenkins_role_arn
+  
+  access_scope {
+    type = "cluster"
+  }
+  
+  depends_on = [aws_eks_access_entry.jenkins_access]
+}
+
