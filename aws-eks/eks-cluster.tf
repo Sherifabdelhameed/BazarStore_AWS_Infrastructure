@@ -23,10 +23,15 @@ resource "aws_eks_cluster" "eks_cluster" {
 
   depends_on = [
     aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy,
+    aws_security_group.eks_cluster  # Add this to ensure security group is created first
   ]
 
   tags = {
     Name = "DEPI-EKS-CLUSTER"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 

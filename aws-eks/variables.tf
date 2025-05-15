@@ -18,3 +18,8 @@ variable "alb_security_group_id" {
 variable "jenkins_role_arn" {
     type = string
 }
+
+variable "jenkins_security_group_id" {
+  type        = string
+  description = "Security group ID of the Jenkins EC2 instance"
+}

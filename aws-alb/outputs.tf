@@ -23,3 +23,13 @@ output "alb_security_group_id" {
   value       = aws_security_group.ALB_SG.id
 }
 
+output "catalog_target_group_arn" {
+  description = "The ARN of the catalog target group"
+  value       = aws_lb_target_group.catalog_target_group.arn
+}
+
+output "order_target_group_arn" {
+  description = "The ARN of the order target group"
+  value       = aws_lb_target_group.order_target_group.arn
+}
+

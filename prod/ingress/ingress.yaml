@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bazarstore-ingress
+  namespace: ${PROD_NAMESPACE}
+  labels:
+    environment: production
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/security-groups: ${SG_ID}
+    # Use service-specific health check paths
+    alb.ingress.kubernetes.io/healthcheck-path-pattern: |
+      /api/catalog=/, /api/order=/, /=/ 
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '20'
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '10'
+    alb.ingress.kubernetes.io/success-codes: '200-399'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '3'
+    alb.ingress.kubernetes.io/target-group-attributes: deregistration_delay.timeout_seconds=30
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=60,routing.http.drop_invalid_header_fields.enabled=true
+    alb.ingress.kubernetes.io/tags: Environment=production,Application=bazarstore
+    alb.ingress.kubernetes.io/subnets: ${SUBNET_LIST}
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: core
+            port:
+              number: 80
+      - path: /api/catalog
+        pathType: Prefix
+        backend:
+          service:
+            name: catalog
+            port:
+              number: 5000
+      - path: /api/order
+        pathType: Prefix
+        backend:
+          service:
+            name: order
+            port:
+              number: 5001

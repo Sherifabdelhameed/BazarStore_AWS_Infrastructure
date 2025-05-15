@@ -1,0 +1,150 @@
+# Complete Guide to Deploying EKS Infrastructure and BazarStore Application
+
+## Prerequisites
+# Make sure you have:
+# - AWS CLI configured with appropriate permissions
+# - Terraform installed (v1.0.0+)
+# - kubectl installed (compatible with EKS v1.31)
+# - Values set in terraform.tfvars file
+
+## STEP 1: Deploy Infrastructure with Terraform
+1 - terraform init
+# Initialize Terraform with necessary providers
+
+2 - terraform apply -var-file=terraform.tfvars
+# This creates:
+#  - VPC with public/private subnets
+#  - EKS cluster (v1.31) and node groups (t3.medium)
+#  - IAM roles and policies
+#  - Jenkins EC2 instance
+#  - AWS Load Balancer Controller and ALB components
+
+## STEP 2: Configure kubectl for EKS Access
+3 - aws eks update-kubeconfig --region eu-north-1 --name My-eks-cluster
+# Adds cluster configuration to your ~/.kube/config file
+
+4 - kubectl get nodes
+# Verify connection to the cluster
+
+## STEP 3: Deploy BazarStore Production Application
+
+5 - ./script.sh
+# This script performs the following:
+#  - Creates the 'bazarstore-prod' namespace
+#  - Deploys ConfigMaps with database connection information
+#  - Applies Sealed Secrets for database credentials
+#  - Sets up PostgreSQL with persistent storage (1GB)
+#  - Deploys microservices:
+#    * Catalog Service (exposed on port 5000)
+#    * Order Service (exposed on port 5001)
+#    * Core Service (exposed via NodePort 30005)
+#  - Creates ALB Ingress with proper routing configuration
+#  - Waits for resources to be ready
+
+## STEP 4: Verify BazarStore Deployment
+
+# Check running pods:
+kubectl get pods -n bazarstore-prod
+# All pods should show status as "Running"
+
+# Check services:
+kubectl get svc -n bazarstore-prod
+# Should show core, catalog, order and postgres services
+
+# Check persistent volume:
+kubectl get pv,pvc -n bazarstore-prod
+# Should show the postgres-pv-prod volume and bound claim
+
+# Check ingress and get the ALB URL:
+kubectl get ingress -n bazarstore-prod
+# Note: It may take 3-5 minutes for the ALB to become available
+
+# Access your BazarStore application:
+echo "BazarStore URL: $(kubectl get ingress -n bazarstore-prod -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')"
+
+# View API endpoints:
+echo "- Core UI:     http://$(kubectl get ingress -n bazarstore-prod -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')"
+echo "- Catalog API: http://$(kubectl get ingress -n bazarstore-prod -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')/api/catalog"
+echo "- Order API:   http://$(kubectl get ingress -n bazarstore-prod -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')/api/order"
+
+## STEP 5: Test Application Functionality
+
+# Test Core UI:
+curl -I "http://$(kubectl get ingress -n bazarstore-prod -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')"
+# Should return HTTP 200 OK
+
+# Test Catalog API:
+curl "http://$(kubectl get ingress -n bazarstore-prod -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')/api/catalog/health"
+# Should return health status information
+
+# Test Order API:
+curl "http://$(kubectl get ingress -n bazarstore-prod -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')/api/order/health"
+# Should return health status information
+
+## STEP 6: Monitor Application and View Logs
+
+# Check PostgreSQL logs:
+kubectl logs -n bazarstore-prod deployment/postgres
+
+# Check microservice logs:
+kubectl logs -n bazarstore-prod deployment/core
+kubectl logs -n bazarstore-prod deployment/catalog
+kubectl logs -n bazarstore-prod deployment/order
+
+# Monitor pods:
+kubectl get pods -n bazarstore-prod -w
+
+## Cleanup Instructions (IMPORTANT)
+
+# When you need to remove the application:
+./bazarstore-cleanup.sh
+# This script:
+#  - Deletes all BazarStore resources (ingress, services, deployments)
+#  - Removes the bazarstore-prod namespace
+#  - Cleans up persistent volumes for PostgreSQL
+#  - Cleans up any orphaned AWS resources related to BazarStore
+
+# When you want to destroy the entire infrastructure:
+# 1. Run the cleanup script first
+./bazarstore-cleanup.sh
+
+# 2. Wait for ALB and associated resources to be fully removed (2-3 minutes)
+sleep 180
+
+# 3. Destroy the infrastructure
+terraform destroy -var-file=terraform.tfvars
+
+## Using with Jenkins CI/CD
+# Access Jenkins via the public IP from Terraform outputs:
+echo "Jenkins URL: http://$(terraform output -raw jenkins_public_ip):8080"
+# Initial admin password can be found on the Jenkins server at:
+# /var/lib/jenkins/secrets/initialAdminPassword
+
+# To set up a CI/CD pipeline:
+# 1. Install required plugins: AWS, Kubernetes, Pipeline
+# 2. Create credentials for AWS and kubectl access
+# 3. Create a pipeline job using the provided Jenkinsfile
+# 4. Configure webhook to trigger builds on code changes
+
+## Troubleshooting
+
+# Check ALB controller logs for ingress issues:
+kubectl logs -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+
+# Check if ALB security groups allow traffic:
+SG_ID=$(terraform output -raw alb_security_group_id)
+aws ec2 describe-security-groups --group-ids $SG_ID
+
+# Verify target groups are properly registered:
+aws elbv2 describe-target-groups --query 'TargetGroups[?contains(TargetGroupName, `k8s`)].[TargetGroupName,TargetType]'
+
+# Check target health:
+TG_ARN=$(aws elbv2 describe-target-groups --query 'TargetGroups[?contains(TargetGroupName, `k8s`)].TargetGroupArn' --output text | head -1)
+aws elbv2 describe-target-health --target-group-arn $TG_ARN
+
+# Debug persistent volume issues:
+kubectl describe pv postgres-pv-prod
+kubectl describe pvc postgres-pvc-prod -n bazarstore-prod
+
+# Check node status and capacity:
+kubectl describe nodes

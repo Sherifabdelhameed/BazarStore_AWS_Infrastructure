@@ -50,6 +50,20 @@ output "k8s_ingress_template_values" {
   description = "Values to use in your Kubernetes ingress manifest"
   value = {
     security_group_id = module.aws-alb.alb_security_group_id
-    subnet_list      = join(",", [module.networking.public_subnet1_id, module.networking.public_subnet2_id])
+    subnet_list       = join(",", [module.networking.public_subnet1_id, module.networking.public_subnet2_id])
   }
+}
+
+output "bazarstore_target_group_arns" {
+  description = "The ARNs of the BazarStore target groups"
+  value = {
+    core    = module.aws-alb.target_group_arn,
+    catalog = module.aws-alb.catalog_target_group_arn,
+    order   = module.aws-alb.order_target_group_arn
+  }
+}
+
+output "bazarstore_script_commands" {
+  description = "Commands to deploy BazarStore application"
+  value       = "Run './script.sh' to deploy the BazarStore application"
 }

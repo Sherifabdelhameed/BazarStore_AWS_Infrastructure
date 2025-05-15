@@ -22,3 +22,9 @@ variable "alb_security_group_id" {
   description = "ID of the security group for ALB"
   type        = string
 }
+
+variable "enable_fallback" {
+  description = "Enable fallback installation if Helm times out"
+  type        = bool
+  default     = false
+}

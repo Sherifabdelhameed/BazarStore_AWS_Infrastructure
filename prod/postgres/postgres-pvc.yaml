@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc-prod
+  namespace: bazarstore-prod
+  labels:
+    environment: production
+spec:
+  storageClassName: standard  # Add this line to match the PV
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

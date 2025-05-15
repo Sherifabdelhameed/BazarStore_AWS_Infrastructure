@@ -26,7 +26,7 @@ resource "helm_release" "aws_lb_controller" {
   namespace  = "kube-system"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  version    = "1.4.7"
+ 
 
   set {
     name  = "clusterName"
@@ -45,13 +45,60 @@ resource "helm_release" "aws_lb_controller" {
 
   set {
     name  = "serviceAccount.create"
-    value = "false"
+    value = "false"  // Change from "true" to "false"
+  }
+
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = var.alb_controller_role_arn
+  }
+
+  set {
+    name  = "logLevel"
+    value = "debug"  // Increase logging detail
   }
 
   set {
     name  = "serviceAccount.name"
-    value = kubernetes_service_account.aws_lbc.metadata[0].name
+    value = "aws-load-balancer-controller"
+  }
+
+  timeout    = 1800  # 30 minutes instead of 600s (10 minutes)
+  wait       = true
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   depends_on = [kubernetes_service_account.aws_lbc]
+}
+
+resource "null_resource" "alb_controller_fallback" {
+  count = var.enable_fallback ? 1 : 0
+  
+  triggers = {
+    helm_failed = helm_release.aws_lb_controller.id
+  }
+  
+  provisioner "local-exec" {
+    command = <<-EOT
+      # Wait for nodes to be ready
+      kubectl wait --for=condition=ready node --all --timeout=300s
+      
+      # Install ALB Controller manually
+      helm install aws-load-balancer-controller \
+        eks/aws-load-balancer-controller \
+        -n kube-system \
+        --set clusterName=${var.cluster_name} \
+        --set serviceAccount.create=false \
+        --set serviceAccount.name=aws-load-balancer-controller \
+        --set region=${var.region} \
+        --set vpcId=${var.vpc_id} \
+        --timeout 20m
+    EOT
+    
+    on_failure = continue
+  }
+  
+  depends_on = [helm_release.aws_lb_controller]
 }
