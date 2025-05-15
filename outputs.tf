@@ -35,3 +35,21 @@ output "kubernetes_config_cmd" {
   description = "Command to configure kubernetes context"
   value       = "aws eks update-kubeconfig --region eu-north-1 --name ${module.aws-eks.cluster_name}"
 }
+
+output "alb_security_group_id" {
+  description = "The ID of the ALB security group"
+  value       = module.aws-alb.alb_security_group_id
+}
+
+output "public_subnets_csv" {
+  description = "Comma-separated list of public subnet IDs for ALB"
+  value       = join(",", [module.networking.public_subnet1_id, module.networking.public_subnet2_id])
+}
+
+output "k8s_ingress_template_values" {
+  description = "Values to use in your Kubernetes ingress manifest"
+  value = {
+    security_group_id = module.aws-alb.alb_security_group_id
+    subnet_list      = join(",", [module.networking.public_subnet1_id, module.networking.public_subnet2_id])
+  }
+}

@@ -38,12 +38,16 @@ resource "aws_iam_policy" "alb_controller_policy" {
           "elasticloadbalancing:DescribeLoadBalancerAttributes",
           "elasticloadbalancing:DescribeListeners",
           "elasticloadbalancing:DescribeListenerCertificates",
+          "elasticloadbalancing:DescribeListenerAttributes",
           "elasticloadbalancing:DescribeSSLPolicies",
           "elasticloadbalancing:DescribeRules",
           "elasticloadbalancing:DescribeTargetGroups",
           "elasticloadbalancing:DescribeTargetGroupAttributes",
           "elasticloadbalancing:DescribeTargetHealth",
-          "elasticloadbalancing:DescribeTags"
+          "elasticloadbalancing:DescribeTags",
+          "elasticloadbalancing:DescribeLoadBalancerPolicies",
+          "elasticloadbalancing:DescribeAccountLimits",
+          "elasticloadbalancing:DescribeTrustStores"
         ],
         "Resource": "*"
       },
@@ -74,7 +78,8 @@ resource "aws_iam_policy" "alb_controller_policy" {
         "Effect": "Allow",
         "Action": [
           "ec2:AuthorizeSecurityGroupIngress",
-          "ec2:RevokeSecurityGroupIngress"
+          "ec2:RevokeSecurityGroupIngress",
+          "ec2:DeleteSecurityGroup"
         ],
         "Resource": "*"
       },
@@ -118,7 +123,10 @@ resource "aws_iam_policy" "alb_controller_policy" {
         "Effect": "Allow",
         "Action": [
           "elasticloadbalancing:CreateLoadBalancer",
-          "elasticloadbalancing:CreateTargetGroup"
+          "elasticloadbalancing:CreateTargetGroup",
+          "elasticloadbalancing:ModifyLoadBalancerAttributes",
+          "elasticloadbalancing:ModifyTargetGroup",
+          "elasticloadbalancing:ModifyTargetGroupAttributes"
         ],
         "Resource": "*",
         "Condition": {
@@ -130,12 +138,63 @@ resource "aws_iam_policy" "alb_controller_policy" {
       {
         "Effect": "Allow",
         "Action": [
+          "elasticloadbalancing:RegisterTargets",
+          "elasticloadbalancing:DeregisterTargets"
+        ],
+        "Resource": "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "elasticloadbalancing:SetIpAddressType",
+          "elasticloadbalancing:SetSecurityGroups",
+          "elasticloadbalancing:SetSubnets",
+          "elasticloadbalancing:DeleteLoadBalancer",
+          "elasticloadbalancing:DeleteTargetGroup"
+        ],
+        "Resource": "*",
+        "Condition": {
+          "Null": {
+            "aws:ResourceTag/elbv2.k8s.aws/cluster": "false"
+          }
+        }
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
           "elasticloadbalancing:CreateListener",
           "elasticloadbalancing:DeleteListener",
           "elasticloadbalancing:CreateRule",
-          "elasticloadbalancing:DeleteRule"
+          "elasticloadbalancing:DeleteRule",
+          "elasticloadbalancing:ModifyListener",
+          "elasticloadbalancing:ModifyRule"
         ],
         "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "elasticloadbalancing:AddTags",
+          "elasticloadbalancing:RemoveTags"
+        ],
+        "Resource": [
+          "arn:aws:elasticloadbalancing:*:*:loadbalancer/*",
+          "arn:aws:elasticloadbalancing:*:*:targetgroup/*",
+          "arn:aws:elasticloadbalancing:*:*:listener/*"
+        ]
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "elasticloadbalancing:AddTags",
+          "elasticloadbalancing:RemoveTags"
+        ],
+        "Resource": [
+          "arn:aws:elasticloadbalancing:*:*:listener/net/*/*",
+          "arn:aws:elasticloadbalancing:*:*:listener/app/*/*",
+          "arn:aws:elasticloadbalancing:*:*:listener-rule/net/*/*",
+          "arn:aws:elasticloadbalancing:*:*:listener-rule/app/*/*"
+        ]
       }
     ]
   })
@@ -178,4 +237,3 @@ resource "aws_iam_openid_connect_provider" "eks_oidc" {
   thumbprint_list = [data.tls_certificate.eks_oidc_thumbprint.certificates[0].sha1_fingerprint]
   url             = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
 }
-

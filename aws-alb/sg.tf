@@ -4,7 +4,9 @@ resource "aws_security_group" "ALB_SG" {
   vpc_id        = var.vpc_id
 
   tags = {
-    Name = "Depi"
+    Name = "eks-ingress-alb-sg"
+    ManagedBy = "terraform"
+    Purpose = "ALB for EKS ingress"
   }
 }
 

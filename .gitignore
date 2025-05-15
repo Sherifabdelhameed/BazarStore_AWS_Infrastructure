@@ -44,4 +44,5 @@ terraform.rc
 Project_Diagram.drawio
 commands_to_run.txt
 k8s_test
+k8s_test_manifest
 aws-ec2/jenkins_key.pem

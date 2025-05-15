@@ -20,13 +20,25 @@ module "aws-eks" {
   vpc_id           = module.networking.vpc_id
   jenkins_role_arn = module.aws-ec2.jenkins_role_arn
 }
-/*
+
+# Uncommented ALB module - will create the security group for your ingress resources
 module "aws-alb" {
-  source          = "./aws-alb"
-  vpc_id          = module.networking.vpc_id
+  source         = "./aws-alb"
+  vpc_id         = module.networking.vpc_id
   subnets_public = [module.networking.public_subnet1_id, module.networking.public_subnet2_id]
 }
-*/
+
+# Add module for EKS addons (only ALB controller)
+module "aws-eks-addons" {
+  source                 = "./aws-eks-addons"
+  cluster_name           = module.aws-eks.cluster_name
+  region                 = var.region
+  vpc_id                 = module.networking.vpc_id
+  alb_controller_role_arn = module.aws-eks.alb_controller_role_arn
+  alb_security_group_id  = module.aws-alb.alb_security_group_id
+  
+  depends_on = [module.aws-eks]
+}
 
 variable "region" {
   type = string
