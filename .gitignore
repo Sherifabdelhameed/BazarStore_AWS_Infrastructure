@@ -46,3 +46,4 @@ commands_to_run.txt
 k8s_test
 k8s_test_manifest
 aws-ec2/jenkins_key.pem
+/home/sherifabdelhameed/DEPI_Terraform_Project/k8s_test_manifest/

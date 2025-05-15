@@ -56,3 +56,23 @@ resource "aws_security_group_rule" "node_ingress_alb" {
   type                     = "ingress"
 }
 
+resource "aws_security_group_rule" "node_ingress_alb_sg" {
+  description              = "Allow ALB security group to communicate with nodes"
+  from_port                = 0
+  to_port                  = 65535
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_nodes.id
+  source_security_group_id = var.alb_security_group_id
+  type                     = "ingress"
+}
+
+resource "aws_security_group_rule" "node_ingress_jenkins_ec2" {
+  description              = "Allow Jenkins EC2 to communicate with EKS nodes"
+  from_port                = 32259
+  to_port                  = 32259
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_nodes.id
+  source_security_group_id = "sg-YOUR-JENKINS-SG-ID"  # Jenkins EC2 security group ID
+  type                     = "ingress"
+}
+

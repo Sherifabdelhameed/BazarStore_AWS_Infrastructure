@@ -14,11 +14,12 @@ module "aws-ec2" {
 }
 
 module "aws-eks" {
-  source           = "./aws-eks"
-  az1              = module.networking.private_subnet1_id
-  az2              = module.networking.private_subnet2_id
-  vpc_id           = module.networking.vpc_id
-  jenkins_role_arn = module.aws-ec2.jenkins_role_arn
+  source                 = "./aws-eks"
+  az1                    = module.networking.private_subnet1_id
+  az2                    = module.networking.private_subnet2_id
+  vpc_id                 = module.networking.vpc_id
+  jenkins_role_arn       = module.aws-ec2.jenkins_role_arn
+  alb_security_group_id  = module.aws-alb.alb_security_group_id
 }
 
 # Uncommented ALB module - will create the security group for your ingress resources
