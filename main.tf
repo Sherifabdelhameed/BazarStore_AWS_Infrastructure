@@ -18,15 +18,15 @@ module "aws-eks" {
   az1                   = module.networking.private_subnet1_id
   az2                   = module.networking.private_subnet2_id
   vpc_id                = module.networking.vpc_id
-  alb_security_group_id = module.aws-alb.alb_security_group_id
-  jenkins_role_arn      = "arn:aws:iam::537124967157:role/jenkins-deployment-role"
+  jenkins_role_arn      = module.aws-ec2.jenkins_role_arn
 }
-
+/*
 module "aws-alb" {
   source          = "./aws-alb"
   vpc_id          = module.networking.vpc_id
   subnets_public = [module.networking.public_subnet1_id, module.networking.public_subnet2_id]
 }
+*/
 
 variable "region" {
   type = string

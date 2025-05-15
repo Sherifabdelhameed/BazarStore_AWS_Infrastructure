@@ -1,3 +1,4 @@
+/*
 # Define a local variable for node count based on the desired_size in the node group
 locals {
   eks_node_count = 2  # This matches the desired_size in aws-eks/node-groups.tf
@@ -32,3 +33,4 @@ resource "aws_lb_target_group_attachment" "eks_node_attachment" {
     ignore_changes = [target_id]
   }
 }
+*/
