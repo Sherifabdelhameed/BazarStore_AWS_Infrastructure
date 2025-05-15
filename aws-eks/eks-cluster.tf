@@ -2,7 +2,7 @@ resource "aws_eks_cluster" "eks_cluster" {
   name = "My-eks-cluster"
 
   access_config {
-    authentication_mode = "API_AND_CONFIG_MAP"  # More compatible with kubectl
+    authentication_mode = "API"  # More compatible with kubectl
   }
 
   role_arn = aws_iam_role.cluster.arn

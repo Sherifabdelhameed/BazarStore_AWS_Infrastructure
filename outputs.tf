@@ -20,3 +20,18 @@ output "public_subnet_ids" {
   description = "The IDs of the public subnets"
   value       = [module.networking.public_subnet1_id, module.networking.public_subnet2_id]
 }
+
+output "private_subnet_ids" {
+  description = "The IDs of the private subnets"
+  value       = [module.networking.private_subnet1_id, module.networking.private_subnet2_id]
+}
+
+output "jenkins_instance_ip" {
+  description = "Public IP of the Jenkins instance"
+  value       = module.aws-ec2.jenkins_public_ip
+}
+
+output "kubernetes_config_cmd" {
+  description = "Command to configure kubernetes context"
+  value       = "aws eks update-kubeconfig --region eu-north-1 --name ${module.aws-eks.cluster_name}"
+}
