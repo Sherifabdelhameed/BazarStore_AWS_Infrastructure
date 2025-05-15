@@ -6,8 +6,10 @@ resource "aws_subnet" "private_subnet1" {
 
   tags = {
     Name = "private-subnet-1"
+    "kubernetes.io/role/internal-elb" = "1"
   }
-}
+  }
+
 
 resource "aws_subnet" "private_subnet2" {
   vpc_id     = aws_vpc.vpc.id
@@ -16,6 +18,8 @@ resource "aws_subnet" "private_subnet2" {
 
   tags = {
     Name = "private-subnet-2"
+    "kubernetes.io/role/internal-elb" = "1"
   }
-}
+  }
+
 
