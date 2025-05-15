@@ -1,3 +1,5 @@
+# BazarStore Infrastructure Project
+
 This Terraform project implements a robust AWS infrastructure featuring a multi-tier architecture with various AWS services working together. The design follows best practices for security, scalability, and high availability.
 
 ## Architecture Components
@@ -29,13 +31,12 @@ This Terraform project implements a robust AWS infrastructure featuring a multi-
 - Custom security groups for cluster and node communication
 - IAM roles with least privilege permissions
 
-### 4. Load Balancing Layer (aws-alb)
-- External-facing Application Load Balancer in **public** subnets
-- Security group allowing HTTP inbound traffic
-- Target group configured for EKS node port 30000
-- HTTP listener routing traffic to containerized applications
-- Custom health check configuration for high availability
-- Automatic registration of EKS nodes using Terraform data sources
+### 4. Kubernetes Ingress & Service Exposure
+- Application services exposed through Kubernetes ingress resources
+- Traffic routing to appropriate backend services based on URL paths
+- Health check configuration for high availability
+- External connectivity through public-facing endpoints
+- Path-based routing to microservices components
 
 ## Infrastructure Automation
 
@@ -76,8 +77,8 @@ ansible/
 
 ## Data Flow
 
-1. External users access applications through the ALB's public endpoint
-2. ALB forwards requests directly to worker nodes on port 30000
+1. External users access applications through Kubernetes ingress resources
+2. Traffic is routed to appropriate backend services based on path patterns
 3. Jenkins server in public subnet manages CI/CD pipelines
 4. Private EKS nodes access internet via NAT Gateway for updates/packages
 5. Administrators can access EKS control plane via public endpoint
