@@ -58,15 +58,26 @@ resource "aws_iam_policy" "eks_kubectl_policy" {
       }
     ]
   })
+
+  # Make sure policy isn't destroyed until attachments are gone
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "jenkins_kubectl_policy_attachment" {
   policy_arn = aws_iam_policy.eks_kubectl_policy.arn
   role       = aws_iam_role.jenkins_eks_role.name
+
+  # Make explicit that this attachment depends on both resources
+  depends_on = [aws_iam_policy.eks_kubectl_policy, aws_iam_role.jenkins_eks_role]
 }
 
 # Create an instance profile with the role
 resource "aws_iam_instance_profile" "jenkins_instance_profile" {
   name = "jenkins-eks-instance-profile"
   role = aws_iam_role.jenkins_eks_role.name
+
+  # This ensures instance profile is destroyed before role which is destroyed before attachment
+  depends_on = [aws_iam_role_policy_attachment.jenkins_kubectl_policy_attachment]
 }

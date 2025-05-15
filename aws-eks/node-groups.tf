@@ -46,3 +46,13 @@ resource "aws_security_group" "eks_nodes" {
   }
 }
 
+resource "aws_security_group_rule" "node_ingress_alb" {
+  description              = "Allow ALB to communicate with nodes"
+  from_port                = 0
+  to_port                  = 65535
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_nodes.id
+  source_security_group_id = aws_security_group.eks_cluster.id
+  type                     = "ingress"
+}
+

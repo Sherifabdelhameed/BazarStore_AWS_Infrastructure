@@ -87,6 +87,105 @@ resource "aws_eks_access_policy_association" "sherif_admin_view_policy" {
   depends_on = [aws_eks_access_entry.sherif_admin_access]
 }
 
+# Use correct ARNs for cluster admin policy
+resource "aws_eks_access_policy_association" "sherif_cluster_admin_policy" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = "arn:aws:iam::537124967157:user/SherifAbdelhameed"
+  
+  access_scope {
+    type = "cluster"
+  }
+  
+  depends_on = [aws_eks_access_entry.sherif_admin_access]
+}
+
+# Add for YoussefAshraf
+resource "aws_eks_access_entry" "youssef_admin_access" {
+  cluster_name      = aws_eks_cluster.eks_cluster.name
+  principal_arn     = "arn:aws:iam::537124967157:user/YoussefAshraf"
+  type              = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "youssef_admin_policy" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
+  principal_arn = "arn:aws:iam::537124967157:user/YoussefAshraf"
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [aws_eks_access_entry.youssef_admin_access]
+}
+
+resource "aws_eks_access_policy_association" "youssef_admin_view_policy" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminViewPolicy"
+  principal_arn = "arn:aws:iam::537124967157:user/YoussefAshraf"
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [aws_eks_access_entry.youssef_admin_access]
+}
+
+resource "aws_eks_access_policy_association" "youssef_cluster_admin_policy" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = "arn:aws:iam::537124967157:user/YoussefAshraf"
+  
+  access_scope {
+    type = "cluster"
+  }
+  
+  depends_on = [aws_eks_access_entry.youssef_admin_access]
+}
+
+# Add for Terraform user
+resource "aws_eks_access_entry" "terraform_admin_access" {
+  cluster_name      = aws_eks_cluster.eks_cluster.name
+  principal_arn     = "arn:aws:iam::537124967157:user/Terraform"
+  type              = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "terraform_admin_policy" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
+  principal_arn = "arn:aws:iam::537124967157:user/Terraform"
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [aws_eks_access_entry.terraform_admin_access]
+}
+
+resource "aws_eks_access_policy_association" "terraform_admin_view_policy" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminViewPolicy"
+  principal_arn = "arn:aws:iam::537124967157:user/Terraform"
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [aws_eks_access_entry.terraform_admin_access]
+}
+
+resource "aws_eks_access_policy_association" "terraform_cluster_admin_policy" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = "arn:aws:iam::537124967157:user/Terraform"
+  
+  access_scope {
+    type = "cluster"
+  }
+  
+  depends_on = [aws_eks_access_entry.terraform_admin_access]
+}
+
 # Allow Jenkins Role to access the EKS cluster
 resource "aws_eks_access_entry" "jenkins_access" {
   cluster_name  = aws_eks_cluster.eks_cluster.name

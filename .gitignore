@@ -43,6 +43,5 @@ terraform.rc
 .$Project_Diagram.drawio.bkp
 Project_Diagram.drawio
 commands_to_run.txt
-target-group-attachments.tf
 k8s_test
-tmp
+aws-ec2/jenkins_key.pem
