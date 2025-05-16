@@ -212,7 +212,7 @@ metadata:
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: '20'
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '10'
     alb.ingress.kubernetes.io/healthcheck-path-pattern: |
-      /=/, /api/catalog=/api/catalog/health, /api/order=/api/order/health
+      /=/, /api/catalog=/health, /api/order=/health
     alb.ingress.kubernetes.io/success-codes: '200-399'
     alb.ingress.kubernetes.io/healthy-threshold-count: '2'
     alb.ingress.kubernetes.io/unhealthy-threshold-count: '3'
