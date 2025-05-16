@@ -6,6 +6,14 @@ CLUSTER_NAME="My-eks-cluster"
 REGION="eu-north-1"
 PROD_NAMESPACE="bazarstore-prod"
 
+# Check if Terraform resources are ready
+echo "Checking if Terraform ALB resources are ready..."
+if ! terraform output -raw alb_security_group_id &>/dev/null; then
+  echo "Error: Terraform ALB resources not found."
+  echo "Please run 'terraform apply' first and ensure it completes successfully."
+  exit 1
+fi
+
 # Get values from Terraform outputs
 SG_ID=$(terraform output -raw alb_security_group_id)
 SUBNET_LIST=$(terraform output -raw public_subnets_csv)
@@ -52,6 +60,19 @@ EOF
 aws iam put-role-policy --role-name eks-alb-controller-role --policy-name ModifyLBAttributesPolicy --policy-document file:///tmp/alb-policy-fix.json
 echo "Restarting AWS Load Balancer Controller to apply new permissions..."
 kubectl delete pod -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+
+# Wait for AWS Load Balancer Controller pods to be ready before proceeding
+echo "Waiting for AWS Load Balancer Controller pods to be ready..."
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=aws-load-balancer-controller -n kube-system --timeout=180s || {
+  echo "Timed out waiting for AWS Load Balancer Controller pods to be ready."
+  echo "Checking controller pod status..."
+  kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+  echo "Checking controller logs..."
+  kubectl logs -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+  exit 1
+}
+
+echo "Checking if Sealed Secrets controller is installed..."
 
 echo "Checking if Sealed Secrets controller is installed..."
 if ! kubectl get deployment sealed-secrets-controller -n kube-system &>/dev/null; then
@@ -154,6 +175,8 @@ metadata:
     alb.ingress.kubernetes.io/healthcheck-path: "/"
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: '20'
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '10'
+    alb.ingress.kubernetes.io/healthcheck-path-pattern: |
+      /=/, /api/catalog=/health, /api/order=/health
     alb.ingress.kubernetes.io/success-codes: '200-399'
     alb.ingress.kubernetes.io/healthy-threshold-count: '2'
     alb.ingress.kubernetes.io/unhealthy-threshold-count: '3'
