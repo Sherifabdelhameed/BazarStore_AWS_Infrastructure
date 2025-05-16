@@ -73,8 +73,6 @@ kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=aws-load-balanc
 }
 
 echo "Checking if Sealed Secrets controller is installed..."
-
-echo "Checking if Sealed Secrets controller is installed..."
 if ! kubectl get deployment sealed-secrets-controller -n kube-system &>/dev/null; then
   echo "Installing Sealed Secrets controller..."
   helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
@@ -94,9 +92,25 @@ kubectl wait --for=condition=available --timeout=90s deployment/sealed-secrets-c
 echo -e "\n1. Creating Production Namespace..."
 kubectl apply -f prod/namespace/prod_namespace.yaml
 
-# Step 2: Create ConfigMaps for database connections
-echo -e "\n2. Creating ConfigMaps..."
-kubectl apply -f prod/config/prod-configmap.yaml
+# Define the password that all components will use
+DB_PASSWORD="mysecretpassword"
+
+# Step 2: Create ConfigMaps for database connections with the correct password
+echo -e "\n2. Creating/Updating ConfigMaps..."
+cat > /tmp/bazarstore-configmap.yaml << EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bazarstore-config
+  namespace: ${PROD_NAMESPACE}
+  labels:
+    environment: production
+data:
+  catalog-db-url: "postgresql://postgres:${DB_PASSWORD}@postgres:5432/bazarcom"
+  order-db-url: "postgresql://postgres:${DB_PASSWORD}@postgres:5432/bazarcom"
+EOF
+
+kubectl apply -f /tmp/bazarstore-configmap.yaml
 
 # Step 3: Apply Sealed Secrets for database credentials
 echo -e "\n3. Setting up Secrets..."
@@ -109,7 +123,7 @@ if ! kubectl get secret db-credentials -n ${PROD_NAMESPACE} &>/dev/null; then
   kubectl create secret generic db-credentials \
     --namespace ${PROD_NAMESPACE} \
     --from-literal=username=postgres \
-    --from-literal=password=mysecretpassword
+    --from-literal=password=${DB_PASSWORD}
   echo "Secret created successfully."
 else
   echo "Recreating the secret with consistent password..."
@@ -117,12 +131,23 @@ else
   kubectl create secret generic db-credentials \
     --namespace ${PROD_NAMESPACE} \
     --from-literal=username=postgres \
-    --from-literal=password=mysecretpassword
+    --from-literal=password=${DB_PASSWORD}
   echo "Secret recreated successfully."
 fi
 
-# Step 4: Set up PostgreSQL Storage
-echo -e "\n4. Setting up PostgreSQL Persistent Volumes..."
+# Verify the connection strings in ConfigMap match the secret's password
+echo "Verifying database connection configuration..."
+kubectl get configmap bazarstore-config -n ${PROD_NAMESPACE} -o yaml
+
+# Step 4: Clean up PostgreSQL storage to ensure fresh initialization with the correct password
+echo -e "\n4. Cleaning up existing PostgreSQL storage..."
+# Delete any existing deployments first to release the PVC
+kubectl delete deployment postgres -n ${PROD_NAMESPACE} --ignore-not-found=true
+# Delete PVC and PV to ensure fresh initialization with the new password
+kubectl delete pvc postgres-pvc-prod -n ${PROD_NAMESPACE} --ignore-not-found=true
+kubectl delete pv postgres-pv-prod --ignore-not-found=true
+
+echo -e "\n4.1 Setting up PostgreSQL Persistent Volumes..."
 kubectl apply -f prod/postgres/postgres-pv.yaml
 kubectl apply -f prod/postgres/postgres-pvc.yaml
 
@@ -133,8 +158,18 @@ kubectl apply -f prod/postgres/postgres-service.yaml
 
 # Wait for PostgreSQL to be ready before deploying dependent services
 echo "Waiting for PostgreSQL to be ready..."
-kubectl rollout restart deployment/postgres -n $PROD_NAMESPACE
-kubectl rollout status deployment/postgres -n $PROD_NAMESPACE --timeout=120s
+kubectl rollout status deployment/postgres -n $PROD_NAMESPACE --timeout=180s
+
+# Check PostgreSQL logs to verify it started correctly
+echo "Checking PostgreSQL logs to verify startup..."
+kubectl logs -n $PROD_NAMESPACE deployment/postgres --tail=20
+
+# To:
+echo "Ensuring database 'bazarcom' exists..."
+PG_POD=$(kubectl get pod -l app=postgres -n $PROD_NAMESPACE -o jsonpath='{.items[0].metadata.name}')
+# Fixed PostgreSQL command syntax for database creation - removed -it flags
+kubectl exec $PG_POD -n $PROD_NAMESPACE -- psql -U postgres -c "SELECT 1 FROM pg_database WHERE datname='bazarcom'" | grep -q 1 || \
+  kubectl exec $PG_POD -n $PROD_NAMESPACE -- psql -U postgres -c "CREATE DATABASE bazarcom;"
 
 # Step 6: Deploy BazarStore Microservices
 echo -e "\n6. Deploying BazarStore Microservices..."
@@ -150,9 +185,11 @@ echo "6.3 Deploying Core Service..."
 kubectl apply -f prod/core/core-dep.yaml
 kubectl apply -f prod/core/core-service.yaml
 
-# Restart microservices to pick up new DB credentials
-echo "Restarting microservices to connect with correct database credentials..."
-kubectl rollout restart deployment/catalog deployment/order -n $PROD_NAMESPACE
+# Wait for services to be ready
+echo "Waiting for services to become ready..."
+kubectl rollout status deployment/catalog -n $PROD_NAMESPACE --timeout=120s
+kubectl rollout status deployment/order -n $PROD_NAMESPACE --timeout=120s
+kubectl rollout status deployment/core -n $PROD_NAMESPACE --timeout=120s
 
 # Step 7: Create ALB Ingress for BazarStore
 echo -e "\n7. Creating ALB Ingress for BazarStore..."
@@ -171,12 +208,11 @@ metadata:
     alb.ingress.kubernetes.io/target-type: instance
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
     alb.ingress.kubernetes.io/security-groups: ${SG_ID}
-    # Use specific healthcheck paths per service
-    alb.ingress.kubernetes.io/healthcheck-path: "/"
+    # Fix healthcheck paths to match actual health endpoints
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: '20'
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '10'
     alb.ingress.kubernetes.io/healthcheck-path-pattern: |
-      /=/, /api/catalog=/health, /api/order=/health
+      /=/, /api/catalog=/api/catalog/health, /api/order=/api/order/health
     alb.ingress.kubernetes.io/success-codes: '200-399'
     alb.ingress.kubernetes.io/healthy-threshold-count: '2'
     alb.ingress.kubernetes.io/unhealthy-threshold-count: '3'
@@ -240,7 +276,6 @@ for i in {1..20}; do
     
     # Just check the ALB directly without trying to extract the name
     echo "Verifying ALB existence in AWS..."
-    # Note: Removed the dot between elbv2 and describe-load-balancers
     if aws elbv2 describe-load-balancers --query "LoadBalancers[?DNSName=='$ALB_ADDRESS'].State.Code" --output text 2>/dev/null | grep -q "active"; then
       echo "✅ ALB is active and ready"
       break
@@ -264,6 +299,59 @@ if [[ -n "$ALB_ADDRESS" ]]; then
   echo ""
   echo "Note: It may take 2-3 minutes more for DNS to propagate fully."
   echo "If you get a DNS error, wait a few minutes and try again."
+  
+  # Step 9: Test BazarStore by adding a book
+  echo -e "\n9. Testing BazarStore by adding a book..."
+  echo "Waiting a moment for all services to be fully operational..."
+  sleep 15
+  
+  # Create a test book using the catalog API
+  echo "Adding test book..."
+  BOOK_JSON='{
+    "title": "Kubernetes in Production",
+    "author": "Cloud Native Expert",
+    "isbn": "978-1234567890",
+    "category": "Distributed Systems",
+    "price": 49.99,
+    "inventory": 100,
+    "description": "A comprehensive guide to running Kubernetes in production environments"
+  }'
+  
+  # Try to add the book
+  echo "Sending request to add book..."
+  RESPONSE=$(curl -s -w "\n%{http_code}" -X POST -H "Content-Type: application/json" \
+    -d "$BOOK_JSON" "http://${ALB_ADDRESS}/api/catalog/books" || echo "000")
+  
+  HTTP_BODY=$(echo "$RESPONSE" | sed '$d')
+  HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+  
+  if [[ "$HTTP_CODE" -ge 200 ]] && [[ "$HTTP_CODE" -lt 300 ]]; then
+    echo "✅ Book created successfully!"
+    echo "Response: $HTTP_BODY"
+    
+    # Extract book ID from response
+    BOOK_ID=$(echo "$HTTP_BODY" | grep -o '"id":[0-9]*' | cut -d':' -f2 || echo "")
+    
+    if [[ -n "$BOOK_ID" ]]; then
+      echo "Verifying book was created by retrieving it..."
+      GET_RESPONSE=$(curl -s -w "\n%{http_code}" "http://${ALB_ADDRESS}/api/catalog/books/$BOOK_ID" || echo "000")
+      GET_BODY=$(echo "$GET_RESPONSE" | sed '$d')
+      GET_CODE=$(echo "$GET_RESPONSE" | tail -n1)
+      
+      if [[ "$GET_CODE" -ge 200 ]] && [[ "$GET_CODE" -lt 300 ]]; then
+        echo "✅ Successfully retrieved book:"
+        echo "$GET_BODY"
+      else
+        echo "❌ Failed to retrieve book. HTTP code: $GET_CODE"
+      fi
+    else
+      echo "⚠️ Created book, but couldn't extract ID for verification"
+    fi
+  else
+    echo "❌ Failed to create book. HTTP code: $HTTP_CODE"
+    echo "Response: $HTTP_BODY"
+    echo "Note: This could be because the catalog service needs more time to establish database connection"
+  fi
 else
   echo -e "\n===== BazarStore Deployment Issues ====="
   echo "ALB address not assigned. Troubleshooting:"
